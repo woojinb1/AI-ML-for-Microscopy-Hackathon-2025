@@ -1,4 +1,4 @@
-# Automated Crystalline Domain Segmentation in Polycrystalline TEM Images
+# Automated Crystalline Domain Segmentation in Polycrystalline TEM Images via Machine Learning-Based FFT Analysis
 
 ![Python](https://img.shields.io/badge/Python-3.8%2B-blue)
 ![Status](https://img.shields.io/badge/Status-Prototype-green)
