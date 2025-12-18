@@ -7,7 +7,6 @@ from shapely.geometry import Point
 import numpy as np
 import os
 
-# 모듈 import (reconstruct_from_groups 추가 import 필요)
 from core.loader import load_image_data
 from core.processor import run_processing, reconstruct_from_groups
 from gui.widgets import SmartControl
@@ -23,7 +22,7 @@ class DSpacingApp:
         self.analysis_results = {}
         self.current_view = 1
         
-        # --- 파라미터 변수 ---
+        # --- Parameter ---
         self.params = {
             'brightness': tk.DoubleVar(value=1.0),
             'mask_radius_dc': tk.IntVar(value=150),
@@ -71,7 +70,6 @@ class DSpacingApp:
         canvas.bind_all("<Button-4>", _on_mouse_wheel)
         canvas.bind_all("<Button-5>", _on_mouse_wheel)
 
-        # 위젯 배치
         ttk.Label(control_frame, text="Control Panel", font=("Arial", 16, "bold")).pack(pady=10)
 
         # 0. Preprocessing
@@ -111,7 +109,6 @@ class DSpacingApp:
         ttk.Checkbutton(check_frame, text="Show Text Labels", variable=self.show_labels_var, 
                         command=lambda: self.switch_view(self.current_view)).pack(side='left')
         
-        # [수정] 안내 문구 업데이트
         ttk.Label(control_frame, text="* Tip: Double-click Peak(View2) or Hull(View4) to delete", foreground="gray", font=("Arial", 9)).pack(anchor='w', pady=(5,0))
 
         # Buttons
@@ -186,7 +183,6 @@ class DSpacingApp:
             target_gid = -1
             target_idx = -1
             
-            # 1. 클릭된 Peak가 어느 그룹의 몇 번째 놈인지 찾기
             for gid, peaks in groups.items():
                 for i, p in enumerate(peaks):
                     # 거리 계산 (p[0]=row=y, p[1]=col=x)
@@ -196,32 +192,30 @@ class DSpacingApp:
                         target_idx = i
                         break
                 if target_gid != -1: break
-            
-            # 2. 찾았다면 짝꿍과 함께 삭제
+
             if target_gid != -1 and target_idx != -1:
                 current_peaks = groups[target_gid]
                 
-                # 짝꿍 인덱스 계산 (리스트가 [P1, P1', P2, P2'...] 순서라고 가정)
+
                 if target_idx % 2 == 0:
                     partner_idx = target_idx + 1
                 else:
                     partner_idx = target_idx - 1
                 
-                # 인덱스가 유효한지 확인 (혹시 모를 에러 방지)
+
                 if partner_idx < len(current_peaks):
-                    # 삭제할 인덱스들 (큰 순서대로 정렬해야 삭제 시 인덱스 밀림 방지)
+
                     indices_to_remove = sorted([target_idx, partner_idx], reverse=True)
                     
                     for idx in indices_to_remove:
                         del current_peaks[idx]
-                
-                # 3. 그룹이 텅 비었으면 그룹 자체를 삭제
+
                 if not current_peaks:
                     del groups[target_gid]
                     if target_gid in self.analysis_results['d_spacings']:
                         del self.analysis_results['d_spacings'][target_gid]
                 
-                # 4. 재계산 (reconstruct)
+
                 p_values = {k: v.get() for k, v in self.params.items()}
                 try:
                     p_values['pixel_size_nm'] = float(self.pixel_size_val.get())
@@ -231,16 +225,15 @@ class DSpacingApp:
                     self.analysis_results['fshift'], groups, p_values
                 )
                 
-                # 결과 업데이트
+
                 self.analysis_results['canvas_ifft'] = new_ifft
                 self.analysis_results['canvas_points'] = new_points
                 self.analysis_results['hull_data'] = new_hull
                 
-                # 화면 갱신
                 self.switch_view(2)
 
         # ---------------------------
-        # Case B: View 4 (Hull) - Hull 삭제
+        # Case B: View 4 (Hull)
         # ---------------------------
         elif self.current_view == 4:
             if 'hull_data' not in self.analysis_results: return

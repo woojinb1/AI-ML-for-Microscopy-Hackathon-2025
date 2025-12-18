@@ -4,7 +4,6 @@ from skimage.feature import peak_local_max
 from sklearn.cluster import DBSCAN
 import matplotlib.pyplot as plt
 
-# [추가] 고급 분석 라이브러리
 from scipy.ndimage import gaussian_filter, gaussian_laplace, gaussian_filter1d
 from scipy.signal import find_peaks
 from sklearn.mixture import GaussianMixture
@@ -16,14 +15,12 @@ try:
 except ImportError:
     ALPHASHAPE_AVAILABLE = False
 
-# =========================================================
-# [수정됨] GMM + RDF 기반 고급 Peak 탐지 (순서 교정)
-# =========================================================
+
 def detect_peaks_advanced(fft_log, params):
     """
     순수한 FFT Log Magnitude를 받아서 내부적으로 통계 처리 후 Peak 반환
     """
-    # 1. 파라미터 로드
+
     bg_sigma = 20
     rd_sigma = 3
     rd_prominence = 0.02
@@ -33,19 +30,18 @@ def detect_peaks_advanced(fft_log, params):
     log_sigma = 2.0
     min_dist = 4
     
-    # LoG threshold: 너무 낮으면 노이즈가 너무 많이 후보가 됨. 적당히 낮게 설정.
+    # LoG threshold: 
     threshold_rel = 0.5 
     
-    # GUI 슬라이더 매핑
+    # GUI slider
     gui_thresh = params.get('threshold_abs', 190)
     gmm_prob_th = np.clip(gui_thresh / 300.0, 0.5, 0.99)
     mask_radius_dc = int(params.get('mask_radius_dc', 20))
 
-    # 2. Background removal (순수한 데이터에서 수행해야 정확함)
+    # 2. Background removal
     bg = gaussian_filter(fft_log, sigma=bg_sigma)
     fft_hp = fft_log - bg
 
-    # 3. 좌표계 생성
     h, w = fft_log.shape
     cy, cx = h // 2, w // 2
     y, x = np.indices((h, w))
@@ -60,46 +56,41 @@ def detect_peaks_advanced(fft_log, params):
     
     radial_I_hp = np.bincount(r_flat, fft_hp_flat) / r_counts
     
-    # [중요] DC Mask 영역은 RDF 계산 후 링 탐색에서 제외하기 위해 값을 죽임
-    # (이미지를 자르는 게 아니라 RDF 그래프에서만 앞부분을 무시)
     radial_I_smooth = gaussian_filter1d(radial_I_hp, sigma=rd_sigma)
     if len(radial_I_smooth) > mask_radius_dc:
-        radial_I_smooth[:mask_radius_dc] = 0 # DC 영역 무시
+        radial_I_smooth[:mask_radius_dc] = 0 
 
-    # 링(Ring) 찾기
+
     peaks_r, _ = find_peaks(radial_I_smooth, prominence=rd_prominence, distance=rd_distance)
 
-    # 5. 분석 영역 마스크(ROI) 설정
+
     if len(peaks_r) > 0:
-        # 가장 강한 링을 기준으로 대역폭 설정
         r0 = peaks_r[np.argmax(radial_I_smooth[peaks_r])]
         ring_mask = (r >= r0 - bw) & (r <= r0 + bw)
         
-        # 링이 찾아졌더라도 DC 영역은 확실히 배제
         ring_mask[r < mask_radius_dc] = False
     else:
-        # 링을 못 찾았으면 DC만 빼고 전체 영역 사용
         ring_mask = np.ones_like(r, dtype=bool)
         ring_mask[r < mask_radius_dc] = False
 
-    # 6. Radial Z-score (통계적 이탈 정도)
+
     diff2 = (fft_hp_flat - radial_I_hp[r_flat])**2
     radial_std = np.sqrt(np.bincount(r_flat, diff2) / r_counts)
     
-    # 분모 0 방지
+
     safe_std = radial_std[r]
     safe_std[safe_std == 0] = 1e-6
     
     radial_z = (fft_hp - radial_I_hp[r]) / safe_std
-    radial_z[~ring_mask] = 0 # 관심 영역 밖은 0 처리
+    radial_z[~ring_mask] = 0 
 
     # 7. LoG (Laplacian of Gaussian)
-    # 링 마스크 내부에서만 LoG 반응 계산
+
     log_resp = -gaussian_laplace(radial_z, sigma=log_sigma)
     log_resp[log_resp < 0] = 0
     log_resp[~ring_mask] = 0
 
-    # 8. 1차 후보군 탐색 (낮은 문턱값으로 넉넉하게 잡기)
+    # 8. 
     peaks_candidate = peak_local_max(
         log_resp, 
         min_distance=min_dist, 
@@ -113,7 +104,6 @@ def detect_peaks_advanced(fft_log, params):
     try:
         py, px = peaks_candidate[:, 0], peaks_candidate[:, 1]
         
-        # Feature: [Z-score, LoG반응, 반지름, 각도(대칭성)]
         theta = np.arctan2(py - cy, px - cx)
         X = np.column_stack([
             radial_z[py, px],
@@ -122,17 +112,16 @@ def detect_peaks_advanced(fft_log, params):
             np.abs(np.sin(theta))
         ])
 
-        # 정규화 및 GMM
+        #  GMM
         Xn = StandardScaler().fit_transform(X)
         gmm = GaussianMixture(n_components=2, covariance_type='full', random_state=0)
         labels = gmm.fit_predict(Xn)
         probs = gmm.predict_proba(Xn)
 
-        # "어느 그룹이 진짜인가?" -> LoG 반응 평균이 높은 쪽이 진짜 Peak임
+
         mean_log = [log_resp[py[labels == k], px[labels == k]].mean() for k in range(2)]
         signal_cluster = np.argmax(mean_log)
         
-        # 확률 기반 필터링 (GUI 슬라이더 값 적용)
         peak_prob = probs[:, signal_cluster]
         final_idx = peak_prob > gmm_prob_th
         
@@ -141,7 +130,6 @@ def detect_peaks_advanced(fft_log, params):
 
     except Exception as e:
         print(f"GMM Error: {e}")
-        # GMM 실패 시 그냥 상위 후보군 리턴
         return peaks_candidate
 
 
@@ -255,7 +243,7 @@ def reconstruct_from_groups(fshift, groups, params):
     return canvas_ifft, canvas_points, hull_data, group_colors
 
 def run_processing(raw_img, params):
-    # 1. 전처리 (밝기 조절)
+    # 1. 
     norm_img = cv2.normalize(raw_img, None, 0, 255, cv2.NORM_MINMAX).astype(np.float32)
     brightness = params.get('brightness', 1.0)
     bright_img = norm_img * brightness
@@ -264,12 +252,11 @@ def run_processing(raw_img, params):
     rows, cols = bright_img.shape
     crow, ccol = rows // 2, cols // 2
     
-    # 2. FFT (CLAHE나 DC Masking을 하지 않은 순수 Magnitude 사용)
+    # 2. FFT
     f = np.fft.fft2(bright_img)
     fshift = np.fft.fftshift(f) 
     magnitude = np.log1p(np.abs(fshift))
     
-    # [수정됨] GMM 알고리즘에 '순수한 Magnitude' 전달 (내부에서 통계처리 및 Masking 수행)
     peaks = detect_peaks_advanced(magnitude, params)
     
     # 3. Grouping
