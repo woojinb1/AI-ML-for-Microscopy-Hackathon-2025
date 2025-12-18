@@ -36,14 +36,12 @@ class SmartControl(ttk.Frame):
         current = self.var.get()
         new_val = round(current + (direction * self.step), self.digits)
         
-        # 범위 체크
         new_val = max(min_v, min(new_val, max_v))
         
         if self.digits == 0: self.var.set(int(new_val))
         else: self.var.set(new_val)
 
     def _on_scale_move(self, val):
-        # 스냅 로직
         v = float(val)
         snapped = round(round(v / self.step) * self.step, self.digits)
         if self.digits == 0: self.var.set(int(snapped))

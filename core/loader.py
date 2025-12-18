@@ -2,7 +2,6 @@ import os
 import numpy as np
 from PIL import Image
 
-# ncempy 체크
 try:
     import ncempy.io as nio
     DM3_AVAILABLE = True
