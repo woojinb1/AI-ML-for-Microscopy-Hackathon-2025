@@ -18,7 +18,7 @@ Click the image below to watch the demonstration of the tool:
 > **Description:** A walkthrough of the GUI-based tool leveraging machine learning to automate FFT analysis and reduce user bias in HRTEM workflows.
 
 ## 👥 Authors
-* **Woojin Bae**, Shihyun Kim, Jinho Rhee
+* Woojin Bae, Shihyun Kim, Jinho Rhee
 * School of Chemical and Biological Engineering, Seoul National University
 
 ## 🚀 Key Features
@@ -38,10 +38,6 @@ The pipeline consists of four integrated stages:
 * Successfully analyzes polycrystalline HRTEM images containing weak crystallinity and phase heterogeneity.
 * Identifies multiple coexisting crystalline phases and measures crystallite sizes ranging from nanometers to tens of nanometers.
 * Significantly reduces analysis time compared to manual methods and ensures reproducibility independent of the analyst.
-
-## 🔮 Future Work
-* Integration with crystallographic databases for automatic phase suggestion.
-* Correlation with EDS/EELS data for comprehensive structure-composition relationship analysis.
 
 ## 📜 References
 * Ophus, C. (2019). *Microscopy and Microanalysis*.
