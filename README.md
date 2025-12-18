@@ -33,6 +33,6 @@ The pipeline consists of four integrated stages:
 4.  **Visualization & Quantification:** Overlays color-coded domains on the original image and calculates individual and total crystalline areas.
 
 ## 📜 References
-* Ophus, C. (2019). *Microscopy and Microanalysis*.
-* Ester, M., et al. (1996). *KDD'96*.
-* Reynolds, D. (2009). *Encyclopedia of Biometrics*.
+* Ophus, C. Four-dimensional scanning transmission electron microscopy (4D-STEM): from scanning nanodiffraction to ptychography and beyond. Microsc. Microanal. 25, 563–582 (2019).
+* Ester, M., Kriegel, H.-P., Sander, J. & Xu, X. A density-based algorithm for discovering clusters in large spatial databases with noise. in Proceedings of the Second International Conference on Knowledge Discovery and Data Mining (KDD'96) 226–231 (AAAI Press, 1996).
+* Reynolds, D. Gaussian Mixture Models. in Encyclopedia of Biometrics (eds. Li, S. Z. & Jain, A.) (Springer, 2009).
