@@ -32,11 +32,6 @@ The pipeline consists of four integrated stages:
 3.  **DBSCAN-Based Domain Clustering:** Identifies spatially connected high-intensity regions in the reconstructed image while filtering isolated noise.
 4.  **Visualization & Quantification:** Overlays color-coded domains on the original image and calculates individual and total crystalline areas.
 
-## 📊 Results
-* Successfully analyzes polycrystalline HRTEM images containing weak crystallinity and phase heterogeneity.
-* Identifies multiple coexisting crystalline phases and measures crystallite sizes ranging from nanometers to tens of nanometers.
-* Significantly reduces analysis time compared to manual methods and ensures reproducibility independent of the analyst.
-
 ## 📜 References
 * Ophus, C. (2019). *Microscopy and Microanalysis*.
 * Ester, M., et al. (1996). *KDD'96*.
