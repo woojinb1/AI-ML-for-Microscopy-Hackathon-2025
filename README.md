@@ -14,8 +14,6 @@ Click the image below to watch the demonstration of the tool:
 
 [![Watch the Demo](https://img.youtube.com/vi/K2Sx-ZWBmSc/maxresdefault.jpg)](https://youtu.be/K2Sx-ZWBmSc)
 
-> **Video Title:** AI-ML-for-Microscopy-Hackathon-2025  
-> **Description:** A walkthrough of the GUI-based tool leveraging machine learning to automate FFT analysis and reduce user bias in HRTEM workflows.
 
 ## 👥 Authors
 * Woojin Bae, Shihyun Kim, Jinho Rhee
